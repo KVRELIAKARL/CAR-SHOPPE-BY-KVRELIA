@@ -1,0 +1,1884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ultimate Car Builder 2D</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Base Styles */
+        :root {
+            --primary-color: #3498db;
+            --secondary-color: #2ecc71;
+            --dark-color: #2c3e50;
+            --light-color: #ecf0f1;
+            --danger-color: #e74c3c;
+            --warning-color: #f39c12;
+            --success-color: #2ecc71;
+            --common-color: #bdc3c7;
+            --uncommon-color: #2ecc71;
+            --rare-color: #3498db;
+            --epic-color: #9b59b6;
+            --legendary-color: #f1c40f;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        /* Game Container */
+        .game-container {
+            display: flex;
+            flex-direction: column;
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+            height: 100vh;
+            gap: 20px;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 20px;
+            background-color: var(--dark-color);
+            color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .game-header h1 {
+            font-size: 1.8rem;
+            margin: 0;
+        }
+
+        .game-currency {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+        }
+
+        .game-currency i {
+            color: var(--legendary-color);
+        }
+
+        /* Main Game Area */
+        .main-game-area {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            min-height: 0;
+        }
+
+        /* Workspace */
+        .workspace-container {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .workspace-controls {
+            display: flex;
+            padding: 10px;
+            background-color: var(--dark-color);
+            gap: 10px;
+        }
+
+        .workspace-controls button {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-size: 0.9rem;
+        }
+
+        .workspace-controls button:hover {
+            background-color: #2980b9;
+        }
+
+        .workspace {
+            flex: 1;
+            padding: 20px;
+            overflow: auto;
+            position: relative;
+        }
+
+        .car-canvas {
+            width: 100%;
+            height: 100%;
+            min-height: 400px;
+            background-color: #f9f9f9;
+            border: 2px dashed #ccc;
+            position: relative;
+            transform-origin: center center;
+            transition: transform 0.3s ease;
+        }
+
+        .car-part {
+            position: absolute;
+            cursor: move;
+            user-select: none;
+            transition: transform 0.2s;
+            font-size: 2rem;
+            text-align: center;
+        }
+
+        .car-part:hover {
+            transform: scale(1.05);
+            z-index: 10;
+        }
+
+        /* Parts Panel */
+        .parts-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .parts-panel-header {
+            padding: 15px;
+            background-color: var(--dark-color);
+            color: white;
+        }
+
+        .parts-categories {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-bottom: 15px;
+        }
+
+        .category-btn {
+            padding: 8px 15px;
+            background-color: #34495e;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            color: white;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+        }
+
+        .category-btn:hover {
+            background-color: #3d566e;
+        }
+
+        .category-btn.active {
+            background-color: var(--primary-color);
+        }
+
+        .parts-search {
+            display: flex;
+            margin-bottom: 15px;
+        }
+
+        .parts-search input {
+            flex: 1;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px 0 0 4px;
+            font-size: 1rem;
+        }
+
+        .parts-search button {
+            padding: 10px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+        }
+
+        .parts-filter {
+            display: flex;
+            gap: 10px;
+        }
+
+        .parts-filter select {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: white;
+        }
+
+        .parts-list-container {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+        }
+
+        .parts-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+            gap: 15px;
+            padding: 5px;
+        }
+
+        .part-item {
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 15px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .part-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .part-item.common {
+            border-left: 4px solid var(--common-color);
+        }
+
+        .part-item.uncommon {
+            border-left: 4px solid var(--uncommon-color);
+        }
+
+        .part-item.rare {
+            border-left: 4px solid var(--rare-color);
+        }
+
+        .part-item.epic {
+            border-left: 4px solid var(--epic-color);
+        }
+
+        .part-item.legendary {
+            border-left: 4px solid var(--legendary-color);
+        }
+
+        .part-icon {
+            font-size: 2rem;
+            margin-bottom: 10px;
+        }
+
+        .part-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .part-price {
+            color: #27ae60;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .part-rarity {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+
+        .part-rarity.common {
+            background-color: var(--common-color);
+            color: #333;
+        }
+
+        .part-rarity.uncommon {
+            background-color: var(--uncommon-color);
+            color: white;
+        }
+
+        .part-rarity.rare {
+            background-color: var(--rare-color);
+            color: white;
+        }
+
+        .part-rarity.epic {
+            background-color: var(--epic-color);
+            color: white;
+        }
+
+        .part-rarity.legendary {
+            background-color: var(--legendary-color);
+            color: #333;
+        }
+
+        /* Bottom Panel */
+        .bottom-panel {
+            display: flex;
+            gap: 20px;
+        }
+
+        .stats-panel {
+            flex: 2;
+            background-color: white;
+            border-radius: 8px;
+            padding: 15px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        .stats-panel h3 {
+            margin-bottom: 15px;
+            color: var(--dark-color);
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .stat-name {
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: var(--primary-color);
+        }
+
+        .stat-bar {
+            height: 10px;
+            background-color: #eee;
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .stat-bar-fill {
+            height: 100%;
+            background-color: var(--primary-color);
+            border-radius: 5px;
+            width: 0%;
+            transition: width 0.5s ease;
+        }
+
+        .actions-panel {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+        }
+
+        .action-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .action-btn i {
+            font-size: 1.1rem;
+        }
+
+        .action-btn.primary {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .action-btn.primary:hover {
+            background-color: #2980b9;
+        }
+
+        .action-btn.secondary {
+            background-color: var(--secondary-color);
+            color: white;
+        }
+
+        .action-btn.secondary:hover {
+            background-color: #27ae60;
+        }
+
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Modals */
+        .modal {
+            display: none;
+            position: fixed;
+            z-index: 100;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            overflow: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 5% auto;
+            padding: 25px;
+            border-radius: 8px;
+            width: 80%;
+            max-width: 800px;
+            box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+            position: relative;
+            animation: modalOpen 0.3s;
+        }
+
+        @keyframes modalOpen {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 20px;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #aaa;
+            cursor: pointer;
+        }
+
+        .close-modal:hover {
+            color: #333;
+        }
+
+        /* Test Drive Modal */
+        .test-drive-container {
+            height: 400px;
+            background-color: #f0f0f0;
+            border-radius: 6px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .test-drive-road {
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: 100px;
+            background-color: #555;
+        }
+
+        .test-drive-car {
+            position: absolute;
+            bottom: 100px;
+            left: 50px;
+            width: 150px;
+            height: 80px;
+            background-color: red;
+            transition: transform 0.1s;
+        }
+
+        /* Missions Modal */
+        .missions-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .mission-item {
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            padding: 15px;
+            border-left: 4px solid var(--primary-color);
+        }
+
+        .mission-item h4 {
+            margin-bottom: 10px;
+            color: var(--dark-color);
+        }
+
+        .mission-item p {
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+        }
+
+        .mission-reward {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            font-weight: bold;
+            color: var(--success-color);
+        }
+
+        .mission-progress {
+            height: 8px;
+            background-color: #eee;
+            border-radius: 4px;
+            margin-top: 10px;
+            overflow: hidden;
+        }
+
+        .mission-progress-bar {
+            height: 100%;
+            background-color: var(--primary-color);
+            width: 0%;
+        }
+
+        .mission-btn {
+            margin-top: 10px;
+            padding: 8px 15px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+        }
+
+        /* Gallery Modal */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .gallery-item {
+            background-color: #f9f9f9;
+            border-radius: 6px;
+            padding: 15px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: center;
+        }
+
+        .gallery-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .gallery-item .car-preview {
+            width: 100%;
+            height: 120px;
+            background-color: #eee;
+            border-radius: 4px;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+        }
+
+        .gallery-item h4 {
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+        }
+
+        .gallery-item p {
+            font-size: 0.8rem;
+            color: #666;
+        }
+
+        /* Save Modal */
+        #saveModal input {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        #saveModal button {
+            width: 100%;
+            padding: 12px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: bold;
+        }
+
+        /* Responsive Design */
+        @media (max-width: 1200px) {
+            .main-game-area {
+                flex-direction: column;
+            }
+            
+            .bottom-panel {
+                flex-direction: column;
+            }
+            
+            .stats-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .actions-panel {
+                grid-template-columns: repeat(4, 1fr);
+            }
+        }
+
+        @media (max-width: 768px) {
+            .parts-list {
+                grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+            }
+            
+            .actions-panel {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            
+            .modal-content {
+                width: 95%;
+                margin: 10% auto;
+            }
+        }
+
+        /* Notification */
+        .notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background-color: var(--success-color);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            animation: slideIn 0.3s;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .notification.fade-out {
+            animation: fadeOut 0.5s;
+        }
+
+        @keyframes fadeOut {
+            from {
+                opacity: 1;
+            }
+            to {
+                opacity: 0;
+            }
+        }
+
+        .part-unavailable {
+            color: var(--danger-color);
+            font-size: 0.8rem;
+            margin-top: 5px;
+        }
+
+        .mission-completed {
+            color: var(--success-color);
+            font-weight: bold;
+        }
+
+        .load-design-btn, .delete-design-btn {
+            padding: 8px 12px;
+            margin: 5px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .load-design-btn {
+            background-color: var(--primary-color);
+            color: white;
+        }
+
+        .delete-design-btn {
+            background-color: var(--danger-color);
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <div class="game-container">
+        <header class="game-header">
+            <h1>Ultimate Car Builder 2D</h1>
+            <div class="game-currency">
+                <span id="moneyAmount">$10,000</span>
+                <i class="fas fa-coins"></i>
+            </div>
+        </header>
+        
+        <div class="main-game-area">
+            <div class="workspace-container">
+                <div class="workspace-controls">
+                    <button id="zoomInBtn"><i class="fas fa-search-plus"></i></button>
+                    <button id="zoomOutBtn"><i class="fas fa-search-minus"></i></button>
+                    <button id="resetViewBtn"><i class="fas fa-expand"></i></button>
+                    <button id="saveDesignBtn"><i class="fas fa-save"></i> Save</button>
+                    <button id="loadDesignBtn"><i class="fas fa-folder-open"></i> Load</button>
+                    <button id="shareDesignBtn"><i class="fas fa-share-alt"></i> Share</button>
+                </div>
+                <div class="workspace">
+                    <div class="car-canvas" id="carCanvas">
+                        <!-- Car parts will be added here dynamically -->
+                    </div>
+                </div>
+            </div>
+            
+            <div class="parts-panel">
+                <div class="parts-panel-header">
+                    <div class="parts-categories" id="partsCategories">
+                        <!-- Categories will be loaded dynamically -->
+                    </div>
+                    <div class="parts-search">
+                        <input type="text" id="partsSearch" placeholder="Search parts...">
+                        <button id="searchBtn"><i class="fas fa-search"></i></button>
+                    </div>
+                    <div class="parts-filter">
+                        <select id="rarityFilter">
+                            <option value="all">All Rarities</option>
+                            <option value="common">Common</option>
+                            <option value="uncommon">Uncommon</option>
+                            <option value="rare">Rare</option>
+                            <option value="epic">Epic</option>
+                            <option value="legendary">Legendary</option>
+                        </select>
+                        <select id="priceFilter">
+                            <option value="all">All Prices</option>
+                            <option value="0-500">$0-$500</option>
+                            <option value="500-2000">$500-$2,000</option>
+                            <option value="2000+">$2,000+</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="parts-list-container">
+                    <div class="parts-list" id="partsList">
+                        <!-- Parts will be loaded here -->
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="bottom-panel">
+            <div class="stats-panel">
+                <h3>Car Stats</h3>
+                <div class="stats-grid" id="carStats">
+                    <div class="stat-item">
+                        <span class="stat-name">Speed:</span>
+                        <span class="stat-value" id="speedStat">0</span>
+                        <div class="stat-bar"><div class="stat-bar-fill" id="speedBar"></div></div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-name">Acceleration:</span>
+                        <span class="stat-value" id="accelStat">0</span>
+                        <div class="stat-bar"><div class="stat-bar-fill" id="accelBar"></div></div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-name">Handling:</span>
+                        <span class="stat-value" id="handlingStat">0</span>
+                        <div class="stat-bar"><div class="stat-bar-fill" id="handlingBar"></div></div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-name">Durability:</span>
+                        <span class="stat-value" id="durabilityStat">0</span>
+                        <div class="stat-bar"><div class="stat-bar-fill" id="durabilityBar"></div></div>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-name">Weight:</span>
+                        <span class="stat-value" id="weightStat">0 kg</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-name">Value:</span>
+                        <span class="stat-value" id="valueStat">$0</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="actions-panel">
+                <button id="testDriveBtn" class="action-btn primary">
+                    <i class="fas fa-tachometer-alt"></i> Test Drive
+                </button>
+                <button id="sellCarBtn" class="action-btn secondary">
+                    <i class="fas fa-dollar-sign"></i> Sell Car
+                </button>
+                <button id="missionsBtn" class="action-btn">
+                    <i class="fas fa-tasks"></i> Missions
+                </button>
+                <button id="galleryBtn" class="action-btn">
+                    <i class="fas fa-images"></i> Gallery
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modals -->
+    <div id="testDriveModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Test Drive</h2>
+            <div class="test-drive-container" id="testDriveContainer">
+                <!-- Test drive content will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <div id="missionsModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Available Missions</h2>
+            <div class="missions-list" id="missionsList">
+                <!-- Missions will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <div id="galleryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Your Car Gallery</h2>
+            <div class="gallery-grid" id="galleryGrid">
+                <!-- Saved cars will be loaded here -->
+            </div>
+        </div>
+    </div>
+    
+    <div id="saveModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h2>Save Your Design</h2>
+            <input type="text" id="designName" placeholder="Enter design name">
+            <button id="confirmSaveBtn">Save Design</button>
+        </div>
+    </div>
+    
+    <script>
+        // Part icons mapping
+        const partIcons = {
+            chassis: '🟫',
+            engine: '⚙️',
+            wheels: '🛞',
+            body: '🚗',
+            suspension: '⏚',
+            exhaust: '💨',
+            interior: '💺',
+            accessories: '✨'
+        };
+
+        // Expanded Parts Database (600+ parts)
+        const partsDatabase = {
+            chassis: generateParts('chassis', 50, ['Basic', 'Sports', 'Off-Road', 'Racing', 'Vintage', 'Futuristic', 'Muscle', 'Compact', 'SUV', 'Truck'], [100, 5000]),
+            engines: generateParts('engine', 100, ['1.0L', '1.4L', '1.8L', '2.0L', '2.5L', '3.0L', 'V6', 'V8', 'V10', 'V12', 'Electric', 'Hybrid', 'Turbo', 'Supercharged', 'Diesel'], [200, 15000]),
+            wheels: generateParts('wheels', 150, ['Standard', 'Alloy', 'Sport', 'Off-Road', 'Racing', 'Lowrider', 'Tuner', 'Vintage', 'Spoked', 'Bulletproof'], [50, 3000]),
+            body: generateParts('body', 100, ['Sedan', 'Coupe', 'Hatchback', 'SUV', 'Truck', 'Convertible', 'Roadster', 'Muscle', 'Vintage', 'Futuristic', 'Concept'], [150, 8000]),
+            suspension: generateParts('suspension', 50, ['Standard', 'Sport', 'Racing', 'Off-Road', 'Adjustable', 'Air', 'Hydraulic'], [100, 5000]),
+            exhaust: generateParts('exhaust', 30, ['Standard', 'Sport', 'Performance', 'Dual', 'Side', 'Titanium'], [80, 2500]),
+            interior: generateParts('interior', 50, ['Standard', 'Sport', 'Luxury', 'Racing', 'Custom', 'Vintage', 'Futuristic'], [200, 6000]),
+            accessories: generateParts('accessories', 80, ['Spoiler', 'Roof Rack', 'Bullbar', 'Neon', 'Decal', 'Sticker', 'Window Tint', 'Grille', 'Fog Lights', 'Roll Cage'], [20, 2000])
+        };
+
+        // Generate parts with variations
+        function generateParts(type, count, prefixes, priceRange) {
+            const parts = [];
+            const rarities = ['common', 'uncommon', 'rare', 'epic', 'legendary'];
+            const rarityWeights = [0.5, 0.25, 0.15, 0.07, 0.03];
+            
+            for (let i = 1; i <= count; i++) {
+                const prefix = prefixes[Math.floor(Math.random() * prefixes.length)];
+                const rarity = getWeightedRandom(rarities, rarityWeights);
+                const price = getRarityPrice(rarity, priceRange[0], priceRange[1]);
+                
+                const part = {
+                    id: `${type}_${i}`,
+                    name: `${prefix} ${type.charAt(0).toUpperCase() + type.slice(1)} ${getRandomSuffix()}`,
+                    type: type,
+                    rarity: rarity,
+                    price: price,
+                    icon: partIcons[type],
+                    stats: generateStats(type, rarity)
+                };
+                
+                parts.push(part);
+            }
+            
+            return parts;
+        }
+
+        function getWeightedRandom(items, weights) {
+            let sum = 0;
+            const r = Math.random();
+            
+            for (let i = 0; i < items.length; i++) {
+                sum += weights[i];
+                if (r <= sum) return items[i];
+            }
+            
+            return items[items.length - 1];
+        }
+
+        function getRarityPrice(rarity, min, max) {
+            const multipliers = {
+                common: 1,
+                uncommon: 1.5,
+                rare: 2.5,
+                epic: 4,
+                legendary: 7
+            };
+            
+            const basePrice = min + Math.random() * (max - min);
+            return Math.round(basePrice * multipliers[rarity]);
+        }
+
+        function generateStats(type, rarity) {
+            const statMultipliers = {
+                common: 1,
+                uncommon: 1.3,
+                rare: 1.7,
+                epic: 2.2,
+                legendary: 3
+            };
+            
+            const stats = {};
+            const multiplier = statMultipliers[rarity];
+            
+            switch(type) {
+                case 'chassis':
+                    stats.weight = Math.round((800 + Math.random() * 1200) / multiplier);
+                    stats.durability = Math.round((30 + Math.random() * 70) * multiplier);
+                    stats.handling = Math.round((10 + Math.random() * 40) * multiplier);
+                    break;
+                case 'engine':
+                    stats.speed = Math.round((20 + Math.random() * 80) * multiplier);
+                    stats.acceleration = Math.round((30 + Math.random() * 70) * multiplier);
+                    stats.weight = Math.round((50 + Math.random() * 200) / multiplier);
+                    break;
+                case 'wheels':
+                    stats.handling = Math.round((20 + Math.random() * 60) * multiplier);
+                    stats.durability = Math.round((20 + Math.random() * 50) * multiplier);
+                    stats.weight = Math.round((10 + Math.random() * 40) / multiplier);
+                    break;
+                case 'body':
+                    stats.durability = Math.round((20 + Math.random() * 60) * multiplier);
+                    stats.weight = Math.round((50 + Math.random() * 300) / multiplier);
+                    stats.speed = Math.round((5 + Math.random() * 20) * multiplier);
+                    break;
+                case 'suspension':
+                    stats.handling = Math.round((30 + Math.random() * 70) * multiplier);
+                    stats.durability = Math.round((20 + Math.random() * 50) * multiplier);
+                    break;
+                case 'exhaust':
+                    stats.speed = Math.round((5 + Math.random() * 15) * multiplier);
+                    stats.acceleration = Math.round((5 + Math.random() * 15) * multiplier);
+                    break;
+                case 'interior':
+                    // Mostly cosmetic but can affect value
+                    stats.value = Math.round((10 + Math.random() * 40) * multiplier);
+                    break;
+                case 'accessories':
+                    // Random small boosts
+                    const possibleStats = ['speed', 'acceleration', 'handling', 'durability'];
+                    const stat = possibleStats[Math.floor(Math.random() * possibleStats.length)];
+                    stats[stat] = Math.round((1 + Math.random() * 10) * multiplier);
+                    break;
+            }
+            
+            return stats;
+        }
+
+        function getRandomSuffix() {
+            const suffixes = ['Basic', 'Pro', 'Elite', 'GT', 'Turbo', 'R', 'S', 'X', 'Z', 'Edition', 'Limited', 'Custom'];
+            return suffixes[Math.floor(Math.random() * suffixes.length)];
+        }
+
+        // Game State
+        let gameState = {
+            money: 10000,
+            currentCar: {
+                chassis: null,
+                engine: null,
+                wheels: null,
+                body: null,
+                suspension: null,
+                exhaust: null,
+                interior: null,
+                accessories: []
+            },
+            unlockedParts: [],
+            completedMissions: [],
+            savedDesigns: [],
+            zoomLevel: 1
+        };
+
+        // DOM Elements
+        const carCanvas = document.getElementById('carCanvas');
+        const partsList = document.getElementById('partsList');
+        const partsCategories = document.getElementById('partsCategories');
+        const moneyAmount = document.getElementById('moneyAmount');
+        const statElements = {
+            speed: document.getElementById('speedStat'),
+            accel: document.getElementById('accelStat'),
+            handling: document.getElementById('handlingStat'),
+            durability: document.getElementById('durabilityStat'),
+            weight: document.getElementById('weightStat'),
+            value: document.getElementById('valueStat')
+        };
+        const statBars = {
+            speed: document.getElementById('speedBar'),
+            accel: document.getElementById('accelBar'),
+            handling: document.getElementById('handlingBar'),
+            durability: document.getElementById('durabilityBar')
+        };
+        const testDriveBtn = document.getElementById('testDriveBtn');
+        const sellCarBtn = document.getElementById('sellCarBtn');
+        const missionsBtn = document.getElementById('missionsBtn');
+        const galleryBtn = document.getElementById('galleryBtn');
+        const zoomInBtn = document.getElementById('zoomInBtn');
+        const zoomOutBtn = document.getElementById('zoomOutBtn');
+        const resetViewBtn = document.getElementById('resetViewBtn');
+        const saveDesignBtn = document.getElementById('saveDesignBtn');
+        const loadDesignBtn = document.getElementById('loadDesignBtn');
+        const shareDesignBtn = document.getElementById('shareDesignBtn');
+        const partsSearch = document.getElementById('partsSearch');
+        const searchBtn = document.getElementById('searchBtn');
+        const rarityFilter = document.getElementById('rarityFilter');
+        const priceFilter = document.getElementById('priceFilter');
+
+        // Modals
+        const modals = {
+            testDrive: document.getElementById('testDriveModal'),
+            missions: document.getElementById('missionsModal'),
+            gallery: document.getElementById('galleryModal'),
+            save: document.getElementById('saveModal')
+        };
+
+        // Missions Data
+        const missions = [
+            {
+                id: 'mission1',
+                title: 'First Build',
+                description: 'Build a complete car with all essential parts',
+                condition: (car) => car.chassis && car.engine && car.wheels && car.body,
+                reward: 2000,
+                completed: false
+            },
+            {
+                id: 'mission2',
+                title: 'Speed Demon',
+                description: 'Build a car with speed stat over 100',
+                condition: (car) => calculateCarStats(car).speed >= 100,
+                reward: 3000,
+                completed: false
+            },
+            {
+                id: 'mission3',
+                title: 'Off-Road Ready',
+                description: 'Build a car with durability over 150 and handling over 80',
+                condition: (car) => {
+                    const stats = calculateCarStats(car);
+                    return stats.durability >= 150 && stats.handling >= 80;
+                },
+                reward: 4000,
+                completed: false
+            },
+            {
+                id: 'mission4',
+                title: 'Luxury Builder',
+                description: 'Build a car worth over $15,000',
+                condition: (car) => calculateCarValue(car) >= 15000,
+                reward: 5000,
+                completed: false
+            },
+            {
+                id: 'mission5',
+                title: 'Accessorize',
+                description: 'Add 5 accessories to your car',
+                condition: (car) => car.accessories.length >= 5,
+                reward: 2500,
+                completed: false
+            }
+        ];
+
+        // Initialize the game
+        function initGame() {
+            // Load categories
+            loadCategories();
+            
+            // Load parts for the first category
+            loadParts('chassis');
+            
+            // Update money display
+            updateMoney();
+            
+            // Set up event listeners
+            setupEventListeners();
+            
+            // Check for saved game
+            loadGame();
+        }
+
+        // Load part categories
+        function loadCategories() {
+            partsCategories.innerHTML = '';
+            
+            Object.keys(partsDatabase).forEach(category => {
+                const button = document.createElement('button');
+                button.className = 'category-btn';
+                button.dataset.category = category;
+                button.textContent = category.charAt(0).toUpperCase() + category.slice(1);
+                
+                button.addEventListener('click', () => {
+                    document.querySelectorAll('.category-btn').forEach(btn => btn.classList.remove('active'));
+                    button.classList.add('active');
+                    loadParts(category);
+                });
+                
+                partsCategories.appendChild(button);
+            });
+            
+            // Activate the first category
+            document.querySelector('.category-btn').classList.add('active');
+        }
+
+        // Load parts for selected category with filters
+        function loadParts(category, searchTerm = '', rarity = 'all', priceRange = 'all') {
+            partsList.innerHTML = '';
+            
+            let parts = partsDatabase[category];
+            
+            // Apply filters
+            if (searchTerm) {
+                parts = parts.filter(part => 
+                    part.name.toLowerCase().includes(searchTerm.toLowerCase())
+                );
+            }
+            
+            if (rarity !== 'all') {
+                parts = parts.filter(part => part.rarity === rarity);
+            }
+            
+            if (priceRange !== 'all') {
+                const [min, max] = priceRange.split('-').map(Number);
+                if (max) {
+                    parts = parts.filter(part => part.price >= min && part.price <= max);
+                } else {
+                    parts = parts.filter(part => part.price >= min);
+                }
+            }
+            
+            // Display parts
+            parts.forEach(part => {
+                const partElement = document.createElement('div');
+                partElement.className = `part-item ${part.rarity}`;
+                
+                // Check if player can afford this part
+                const canAfford = gameState.money >= part.price;
+                if (!canAfford) {
+                    partElement.classList.add('disabled');
+                }
+                
+                partElement.innerHTML = `
+                    <div class="part-rarity ${part.rarity}">${part.rarity.charAt(0).toUpperCase() + part.rarity.slice(1)}</div>
+                    <div class="part-icon">${part.icon}</div>
+                    <div class="part-name">${part.name}</div>
+                    <div class="part-price">$${part.price}</div>
+                    ${canAfford ? '' : '<div class="part-unavailable">Not enough money</div>'}
+                `;
+                
+                partElement.addEventListener('click', () => {
+                    if (canAfford) {
+                        addPartToCar(part);
+                        updateCarStats();
+                        renderCar();
+                    }
+                });
+                
+                partsList.appendChild(partElement);
+            });
+        }
+
+        // Add part to current car
+        function addPartToCar(part) {
+            // Check if player can afford the part
+            if (gameState.money < part.price) {
+                alert("You don't have enough money for this part!");
+                return;
+            }
+            
+            // Deduct money
+            gameState.money -= part.price;
+            updateMoney();
+            
+            // Add to unlocked parts if not already there
+            if (!gameState.unlockedParts.includes(part.id)) {
+                gameState.unlockedParts.push(part.id);
+            }
+            
+            // Add part to car
+            if (part.type === 'accessories') {
+                gameState.currentCar.accessories.push(part);
+            } else {
+                gameState.currentCar[part.type] = part;
+            }
+            
+            // Check missions
+            checkMissions();
+            
+            // Save game
+            saveGame();
+        }
+
+        // Calculate car stats
+        function calculateCarStats(car) {
+            let stats = {
+                speed: 0,
+                acceleration: 0,
+                handling: 0,
+                durability: 0,
+                weight: 0,
+                value: 0
+            };
+            
+            // Calculate stats from all parts
+            for (const partType in car) {
+                if (partType === 'accessories') {
+                    car.accessories.forEach(acc => {
+                        for (const stat in acc.stats) {
+                            stats[stat] += acc.stats[stat] || 0;
+                        }
+                    });
+                } else if (car[partType]) {
+                    const part = car[partType];
+                    for (const stat in part.stats) {
+                        stats[stat] += part.stats[stat] || 0;
+                    }
+                }
+            }
+            
+            return stats;
+        }
+
+        // Calculate car value
+        function calculateCarValue(car) {
+            let value = 0;
+            
+            for (const partType in car) {
+                if (partType === 'accessories') {
+                    car.accessories.forEach(acc => {
+                        value += acc.price;
+                    });
+                } else if (car[partType]) {
+                    value += car[partType].price;
+                }
+            }
+            
+            // Add some value for the complete car
+            if (car.chassis && car.engine && car.wheels && car.body) {
+                value = Math.round(value * 1.2); // Complete cars are worth more
+            }
+            
+            return value;
+        }
+
+        // Update car stats display
+        function updateCarStats() {
+            const stats = calculateCarStats(gameState.currentCar);
+            const maxStats = {
+                speed: 200,
+                acceleration: 200,
+                handling: 200,
+                durability: 300
+            };
+            
+            // Update text values
+            statElements.speed.textContent = stats.speed;
+            statElements.accel.textContent = stats.acceleration;
+            statElements.handling.textContent = stats.handling;
+            statElements.durability.textContent = stats.durability;
+            statElements.weight.textContent = `${stats.weight} kg`;
+            statElements.value.textContent = `$${calculateCarValue(gameState.currentCar)}`;
+            
+            // Update stat bars
+            statBars.speed.style.width = `${(stats.speed / maxStats.speed) * 100}%`;
+            statBars.accel.style.width = `${(stats.acceleration / maxStats.acceleration) * 100}%`;
+            statBars.handling.style.width = `${(stats.handling / maxStats.handling) * 100}%`;
+            statBars.durability.style.width = `${(stats.durability / maxStats.durability) * 100}%`;
+        }
+
+        // Render car on canvas
+        function renderCar() {
+            carCanvas.innerHTML = '';
+            
+            // Render parts in proper order
+            const partOrder = ['chassis', 'body', 'engine', 'suspension', 'wheels', 'exhaust', 'interior', 'accessories'];
+            
+            partOrder.forEach(partType => {
+                if (partType === 'accessories') {
+                    gameState.currentCar.accessories.forEach((acc, index) => {
+                        const partElement = createPartElement(acc, index);
+                        if (partElement) carCanvas.appendChild(partElement);
+                    });
+                } else if (gameState.currentCar[partType]) {
+                    const partElement = createPartElement(gameState.currentCar[partType]);
+                    if (partElement) carCanvas.appendChild(partElement);
+                }
+            });
+            
+            // Make parts draggable
+            makePartsDraggable();
+        }
+
+        function createPartElement(part, index = 0) {
+            if (!part) return null;
+            
+            const partElement = document.createElement('div');
+            partElement.className = 'car-part';
+            partElement.dataset.partId = part.id;
+            partElement.dataset.partType = part.type;
+            
+            // Set different positions for different part types
+            let left = 150;
+            let top = 100;
+            let rotation = 0;
+            
+            switch(part.type) {
+                case 'chassis':
+                    left = 150;
+                    top = 120;
+                    break;
+                case 'body':
+                    left = 150;
+                    top = 120;
+                    break;
+                case 'engine':
+                    left = 180;
+                    top = 130;
+                    break;
+                case 'wheels':
+                    // Position wheels differently
+                    if (index === 0) {
+                        left = 130; // Front wheel
+                    } else {
+                        left = 230; // Rear wheel
+                    }
+                    top = 180;
+                    break;
+                case 'suspension':
+                    left = 150;
+                    top = 150;
+                    break;
+                case 'exhaust':
+                    left = 220;
+                    top = 160;
+                    rotation = -20;
+                    break;
+                case 'interior':
+                    left = 160;
+                    top = 130;
+                    break;
+                case 'accessories':
+                    // Position accessories along the top
+                    left = 150 + (index * 30);
+                    top = 80;
+                    break;
+            }
+            
+            partElement.style.left = `${left}px`;
+            partElement.style.top = `${top}px`;
+            
+            if (rotation !== 0) {
+                partElement.style.transform = `rotate(${rotation}deg)`;
+            }
+            
+            partElement.textContent = part.icon;
+            
+            return partElement;
+        }
+
+        // Make parts draggable
+        function makePartsDraggable() {
+            const parts = document.querySelectorAll('.car-part');
+            
+            parts.forEach(part => {
+                let isDragging = false;
+                let offsetX, offsetY;
+                
+                part.addEventListener('mousedown', (e) => {
+                    isDragging = true;
+                    offsetX = e.clientX - part.getBoundingClientRect().left;
+                    offsetY = e.clientY - part.getBoundingClientRect().top;
+                    part.style.zIndex = '100';
+                    e.preventDefault();
+                });
+                
+                document.addEventListener('mousemove', (e) => {
+                    if (!isDragging) return;
+                    
+                    const canvasRect = carCanvas.getBoundingClientRect();
+                    const x = e.clientX - canvasRect.left - offsetX;
+                    const y = e.clientY - canvasRect.top - offsetY;
+                    
+                    // Constrain to canvas
+                    const maxX = canvasRect.width - part.offsetWidth;
+                    const maxY = canvasRect.height - part.offsetHeight;
+                    
+                    part.style.left = `${Math.max(0, Math.min(x, maxX))}px`;
+                    part.style.top = `${Math.max(0, Math.min(y, maxY))}px`;
+                });
+                
+                document.addEventListener('mouseup', () => {
+                    isDragging = false;
+                    part.style.zIndex = '';
+                });
+            });
+        }
+
+        // Test drive function
+        function testDrive() {
+            const car = gameState.currentCar;
+            
+            if (!car.chassis || !car.engine || !car.wheels || !car.body) {
+                alert('Please complete your car with all essential parts before test driving!');
+                return;
+            }
+            
+            // Open test drive modal
+            openModal('testDrive');
+            
+            const testDriveContainer = document.getElementById('testDriveContainer');
+            testDriveContainer.innerHTML = `
+                <div class="test-drive-road"></div>
+                <div class="test-drive-car" id="testDriveCar"></div>
+                <div class="test-drive-stats">
+                    <p>Testing your car's performance...</p>
+                    <div id="testDriveResults"></div>
+                </div>
+            `;
+            
+            const carStats = calculateCarStats(car);
+            const testCar = document.getElementById('testDriveCar');
+            
+            // Set car color based on body
+            if (car.body) {
+                testCar.style.backgroundColor = getColorFromName(car.body.name);
+            }
+            
+            // Animate test drive
+            let startTime = Date.now();
+            let animationFrame;
+            let distance = 0;
+            
+            function animate() {
+                const elapsed = (Date.now() - startTime) / 1000; // in seconds
+                distance = (carStats.speed / 3.6) * elapsed; // in meters
+                
+                // Acceleration effect
+                const accelerationFactor = Math.min(1, elapsed / (carStats.acceleration / 50));
+                
+                // Position car based on speed
+                const carPosition = Math.min(600, 50 + (distance * 5) * accelerationFactor);
+                testCar.style.left = `${carPosition}px`;
+                
+                // Bounce effect based on suspension/handling
+                const bounce = Math.sin(elapsed * 5) * (5 - (carStats.handling / 40));
+                testCar.style.bottom = `${100 + bounce}px`;
+                
+                if (carPosition < 600) {
+                    animationFrame = requestAnimationFrame(animate);
+                } else {
+                    finishTestDrive(carStats);
+                }
+            }
+            
+            animate();
+            
+            // Set timeout in case animation gets stuck
+            setTimeout(() => {
+                cancelAnimationFrame(animationFrame);
+                finishTestDrive(carStats);
+            }, 10000);
+            
+            function finishTestDrive(stats) {
+                const results = document.getElementById('testDriveResults');
+                results.innerHTML = `
+                    <h4>Test Drive Results</h4>
+                    <p>Top Speed: ${Math.round(stats.speed * 0.9 + Math.random() * stats.speed * 0.2)} km/h</p>
+                    <p>0-100 km/h: ${Math.round((100 / stats.acceleration) * (0.8 + Math.random() * 0.4))} seconds</p>
+                    <p>Handling Score: ${Math.round(stats.handling * (0.9 + Math.random() * 0.2))}/200</p>
+                `;
+            }
+        }
+
+        function getColorFromName(name) {
+            const colors = ['#FF5252', '#FF4081', '#E040FB', '#7C4DFF', '#536DFE', '#448AFF', '#40C4FF', '#18FFFF', '#64FFDA', '#69F0AE', '#B2FF59', '#EEFF41', '#FFFF00', '#FFD740', '#FFAB40', '#FF6E40'];
+            let hash = 0;
+            
+            for (let i = 0; i < name.length; i++) {
+                hash = name.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            
+            return colors[Math.abs(hash) % colors.length];
+        }
+
+        // Sell car function
+        function sellCar() {
+            const car = gameState.currentCar;
+            const value = calculateCarValue(car);
+            
+            if (value === 0) {
+                alert("You don't have a complete car to sell!");
+                return;
+            }
+            
+            if (confirm(`Sell this car for $${value}?`)) {
+                gameState.money += value;
+                gameState.currentCar = {
+                    chassis: null,
+                    engine: null,
+                    wheels: null,
+                    body: null,
+                    suspension: null,
+                    exhaust: null,
+                    interior: null,
+                    accessories: []
+                };
+                
+                updateMoney();
+                updateCarStats();
+                renderCar();
+                saveGame();
+            }
+        }
+
+        // Missions functions
+        function openMissions() {
+            openModal('missions');
+            const missionsList = document.getElementById('missionsList');
+            missionsList.innerHTML = '';
+            
+            missions.forEach(mission => {
+                const missionElement = document.createElement('div');
+                missionElement.className = 'mission-item';
+                
+                const isCompleted = gameState.completedMissions.includes(mission.id);
+                const inProgress = !isCompleted && mission.condition(gameState.currentCar);
+                
+                missionElement.innerHTML = `
+                    <h4>${mission.title}</h4>
+                    <p>${mission.description}</p>
+                    <div class="mission-reward">
+                        <i class="fas fa-coins"></i>
+                        <span>Reward: $${mission.reward}</span>
+                    </div>
+                    ${isCompleted ? 
+                        '<div class="mission-completed"><i class="fas fa-check-circle"></i> Completed</div>' :
+                        `<div class="mission-progress">
+                            <div class="mission-progress-bar" style="width: ${inProgress ? '100' : '0'}%"></div>
+                        </div>
+                        ${inProgress ? 
+                            `<button class="mission-btn" data-mission-id="${mission.id}">
+                                <i class="fas fa-check"></i> Complete Mission
+                            </button>` :
+                            ''
+                        }`
+                    }
+                `;
+                
+                missionsList.appendChild(missionElement);
+            });
+            
+            // Add event listeners to mission buttons
+            document.querySelectorAll('.mission-btn').forEach(btn => {
+                btn.addEventListener('click', () => completeMission(btn.dataset.missionId));
+            });
+        }
+
+        function checkMissions() {
+            missions.forEach(mission => {
+                if (!mission.completed && mission.condition(gameState.currentCar)) {
+                    mission.completed = true;
+                    gameState.completedMissions.push(mission.id);
+                    gameState.money += mission.reward;
+                    
+                    // Show mission complete notification
+                    showNotification(`Mission Complete: ${mission.title}`, `You earned $${mission.reward}!`);
+                    
+                    updateMoney();
+                    saveGame();
+                }
+            });
+        }
+
+        function completeMission(missionId) {
+            const mission = missions.find(m => m.id === missionId);
+            if (mission && !gameState.completedMissions.includes(missionId)) {
+                gameState.completedMissions.push(missionId);
+                gameState.money += mission.reward;
+                
+                updateMoney();
+                openMissions(); // Refresh missions view
+                saveGame();
+            }
+        }
+
+        // Gallery functions
+        function openGallery() {
+            openModal('gallery');
+            const galleryGrid = document.getElementById('galleryGrid');
+            galleryGrid.innerHTML = '';
+            
+            if (gameState.savedDesigns.length === 0) {
+                galleryGrid.innerHTML = '<p>No saved designs yet. Build a car and save it to your gallery!</p>';
+                return;
+            }
+            
+            gameState.savedDesigns.forEach((design, index) => {
+                const designElement = document.createElement('div');
+                designElement.className = 'gallery-item';
+                
+                designElement.innerHTML = `
+                    <div class="car-preview">${getCarPreview(design.car)}</div>
+                    <h4>${design.name}</h4>
+                    <p>Value: $${design.value}</p>
+                    <button class="load-design-btn" data-design-index="${index}">Load</button>
+                    <button class="delete-design-btn" data-design-index="${index}">Delete</button>
+                `;
+                
+                galleryGrid.appendChild(designElement);
+            });
+            
+            // Add event listeners
+            document.querySelectorAll('.load-design-btn').forEach(btn => {
+                btn.addEventListener('click', () => loadSavedDesign(btn.dataset.designIndex));
+            });
+            
+            document.querySelectorAll('.delete-design-btn').forEach(btn => {
+                btn.addEventListener('click', () => deleteSavedDesign(btn.dataset.designIndex));
+            });
+        }
+
+        function getCarPreview(car) {
+            // Create a simple representation of the car using emoji
+            let preview = '';
+            if (car.chassis) preview += car.chassis.icon;
+            if (car.body) preview += car.body.icon;
+            if (car.engine) preview += car.engine.icon;
+            if (car.wheels) preview += car.wheels.icon;
+            if (car.accessories && car.accessories.length > 0) {
+                preview += car.accessories[0].icon;
+                if (car.accessories.length > 1) preview += '+';
+            }
+            return preview || '🚗';
+        }
+
+        function saveDesign() {
+            openModal('save');
+            
+            document.getElementById('confirmSaveBtn').onclick = function() {
+                const designName = document.getElementById('designName').value.trim();
+                
+                if (!designName) {
+                    alert('Please enter a name for your design');
+                    return;
+                }
+                
+                const value = calculateCarValue(gameState.currentCar);
+                
+                gameState.savedDesigns.push({
+                    name: designName,
+                    value: value,
+                    car: JSON.parse(JSON.stringify(gameState.currentCar)) // Deep copy
+                });
+                
+                closeModal('save');
+                showNotification('Design Saved', `${designName} has been added to your gallery!`);
+                saveGame();
+            };
+        }
+
+        function loadSavedDesign(index) {
+            const design = gameState.savedDesigns[index];
+            if (design) {
+                gameState.currentCar = JSON.parse(JSON.stringify(design.car));
+                updateCarStats();
+                renderCar();
+                closeModal('gallery');
+                showNotification('Design Loaded', `${design.name} has been loaded!`);
+            }
+        }
+
+        function deleteSavedDesign(index) {
+            if (confirm('Are you sure you want to delete this design?')) {
+                gameState.savedDesigns.splice(index, 1);
+                openGallery(); // Refresh gallery
+                saveGame();
+            }
+        }
+
+        // Zoom functions
+        function zoomIn() {
+            gameState.zoomLevel = Math.min(2, gameState.zoomLevel + 0.1);
+            carCanvas.style.transform = `scale(${gameState.zoomLevel})`;
+        }
+
+        function zoomOut() {
+            gameState.zoomLevel = Math.max(0.5, gameState.zoomLevel - 0.1);
+            carCanvas.style.transform = `scale(${gameState.zoomLevel})`;
+        }
+
+        function resetView() {
+            gameState.zoomLevel = 1;
+            carCanvas.style.transform = 'scale(1)';
+        }
+
+        // Modal functions
+        function openModal(modalId) {
+            modals[modalId].style.display = 'block';
+        }
+
+        function closeModal(modalId) {
+            modals[modalId].style.display = 'none';
+        }
+
+        function setupModalCloseHandlers() {
+            document.querySelectorAll('.close-modal').forEach(closeBtn => {
+                closeBtn.addEventListener('click', function() {
+                    const modal = this.closest('.modal');
+                    modal.style.display = 'none';
+                });
+            });
+            
+            window.addEventListener('click', function(e) {
+                if (e.target.classList.contains('modal')) {
+                    e.target.style.display = 'none';
+                }
+            });
+        }
+
+        // Notification function
+        function showNotification(title, message) {
+            const notification = document.createElement('div');
+            notification.className = 'notification';
+            notification.innerHTML = `
+                <h4>${title}</h4>
+                <p>${message}</p>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.classList.add('fade-out');
+                setTimeout(() => notification.remove(), 500);
+            }, 3000);
+        }
+
+        // Search and filter functions
+        function applyFilters() {
+            const activeCategory = document.querySelector('.category-btn.active').dataset.category;
+            const searchTerm = partsSearch.value;
+            const rarity = rarityFilter.value;
+            const price = priceFilter.value;
+            
+            loadParts(activeCategory, searchTerm, rarity, price);
+        }
+
+        // Save/load game functions
+        function saveGame() {
+            localStorage.setItem('carBuilderGame', JSON.stringify(gameState));
+        }
+
+        function loadGame() {
+            const savedGame = localStorage.getItem('carBuilderGame');
+            if (savedGame) {
+                gameState = JSON.parse(savedGame);
+                updateMoney();
+                updateCarStats();
+                renderCar();
+            }
+        }
+
+        function updateMoney() {
+            moneyAmount.textContent = `$${gameState.money}`;
+        }
+
+        // Setup event listeners
+        function setupEventListeners() {
+            // Category buttons are set up in loadCategories()
+            
+            // Test drive
+            testDriveBtn.addEventListener('click', testDrive);
+            
+            // Sell car
+            sellCarBtn.addEventListener('click', sellCar);
+            
+            // Missions
+            missionsBtn.addEventListener('click', openMissions);
+            
+            // Gallery
+            galleryBtn.addEventListener('click', openGallery);
+            
+            // Zoom controls
+            zoomInBtn.addEventListener('click', zoomIn);
+            zoomOutBtn.addEventListener('click', zoomOut);
+            resetViewBtn.addEventListener('click', resetView);
+            
+            // Save/load/share
+            saveDesignBtn.addEventListener('click', saveDesign);
+            loadDesignBtn.addEventListener('click', openGallery);
+            shareDesignBtn.addEventListener('click', () => {
+                alert('Sharing feature would be implemented here!');
+            });
+            
+            // Search and filters
+            searchBtn.addEventListener('click', applyFilters);
+            partsSearch.addEventListener('keypress', (e) => {
+                if (e.key === 'Enter') applyFilters();
+            });
+            rarityFilter.addEventListener('change', applyFilters);
+            priceFilter.addEventListener('change', applyFilters);
+            
+            // Modal close handlers
+            setupModalCloseHandlers();
+        }
+
+        // Initialize the game when DOM is loaded
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+</body>
+</html>
